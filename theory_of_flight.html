@@ -167,6 +167,7 @@
         </div>
         <button id="like-button">Like Question</button>
         <div id="liked-questions-list"></div>
+        <button id="know-about-it-button">Know About It</button>
     </div>
 
     <script>
@@ -1188,6 +1189,7 @@
         const questionCountElement = document.getElementById("question-count");
         const likeButton = document.getElementById("like-button");
         const likedQuestionsListElement = document.getElementById("liked-questions-list");
+        const knowAboutItButton = document.getElementById("know-about-it-button");
 
         function loadQuestion() {
             const currentQuestion = questions[currentQuestionIndex];
@@ -1207,7 +1209,7 @@
             questionCountElement.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
             updateNavigationButtons();
             likeButton.style.display = "block";
-            likeButton.textContent = likedQuestions.includes(currentQuestionIndex) ? "Liked!" : "Like Question";
+            likeButton.textContent = likedQuestions.includes(currentQuestionIndex) ? "Selected!" : "Select Question";
             displayLikedQuestions();
         }
 
@@ -1290,23 +1292,23 @@
         function likeCurrentQuestion() {
             if (likedQuestions.includes(currentQuestionIndex)) {
                 likedQuestions = likedQuestions.filter(index => index !== currentQuestionIndex);
-                likeButton.textContent = "Like Question";
+                likeButton.textContent = "Select Question";
             } else {
                 likedQuestions.push(currentQuestionIndex);
-                likeButton.textContent = "Liked!";
+                likeButton.textContent = "Selected!";
             }
             displayLikedQuestions();
         }
 
         function displayLikedQuestions() {
             likedQuestionsListElement.innerHTML = "<b>Liked Questions:</b> ";
-            if(likedQuestions.length === 0){
+            if (likedQuestions.length === 0) {
                 likedQuestionsListElement.innerHTML += "None";
             } else {
                 likedQuestions.forEach(index => {
-                    likedQuestionsListElement.innerHTML += (index + 1) + ", "; // Add 1 to index to display question number
+                    likedQuestionsListElement.innerHTML += (index + 1) + ", ";
                 });
-                likedQuestionsListElement.innerHTML = likedQuestionsListElement.innerHTML.slice(0, -2); // Remove trailing comma and space
+                likedQuestionsListElement.innerHTML = likedQuestionsListElement.innerHTML.slice(0, -2);
             }
         }
 
@@ -1314,6 +1316,13 @@
         nextButton.addEventListener("click", nextQuestion);
         prevButton.addEventListener("click", prevQuestion);
         loadQuestion();
+
+        knowAboutItButton.addEventListener("click", () => {
+            const currentQuestion = questions[currentQuestionIndex].question;
+            const searchQuery = encodeURIComponent(currentQuestion);
+            window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+        });
+
 
     </script>
 </body>

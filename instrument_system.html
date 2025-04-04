@@ -167,6 +167,7 @@
         </div>
         <button id="like-button">Like Question</button>
         <div id="liked-questions-list"></div>
+          <button id="know-about-it-button">Know About It</button>
     </div>
 
     <script>
@@ -6851,6 +6852,7 @@
         const questionCountElement = document.getElementById("question-count");
         const likeButton = document.getElementById("like-button");
         const likedQuestionsListElement = document.getElementById("liked-questions-list");
+        const knowAboutItButton = document.getElementById("know-about-it-button");
 
         function loadQuestion() {
             const currentQuestion = questions[currentQuestionIndex];
@@ -6977,6 +6979,12 @@
         nextButton.addEventListener("click", nextQuestion);
         prevButton.addEventListener("click", prevQuestion);
         loadQuestion();
+
+         knowAboutItButton.addEventListener("click", () => {
+            const currentQuestion = questions[currentQuestionIndex].question;
+            const searchQuery = encodeURIComponent(currentQuestion);
+            window.open(`https://www.google.com/search?q=${searchQuery}`, '_blank');
+        });
 
     </script>
 </body>
