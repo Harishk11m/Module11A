@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decorative Quiz</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .question {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            list-style: none;
+            padding: 0;
+        }
+
+        .options li {
+            margin-bottom: 10px;
+        }
+
+        .options button {
+            width: 100%;
+            padding: 10px 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .options button:hover {
+            background-color: #f0f0f0;
+        }
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .correct {
+            background-color: #c2f0c2;
+        }
+
+        .incorrect {
+            background-color: #f0c2c2;
+        }
+
+        #next-button, #prev-button {
+            width: 48%;
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+
+        #prev-button{
+            background-color: #008CBA;
+        }
+
+        #next-button:hover, #prev-button:hover{
+            background-color: #45a049;
+        }
+
+        #correct-answer {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        #question-navigation {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #question-count{
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        #jump-to-question {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #jump-to-question input {
+            width: 50px;
+            padding: 5px;
+        }
+
+        #jump-to-question button {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        #like-button {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #like-button:hover {
+            background-color: #0077b3;
+        }
+        #liked-questions-list{
+            margin-top: 10px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h1>Simple Quiz</h1>
+        <div id="question-container">
+            <p id="question" class="question"></p>
+            <ul id="options" class="options"></ul>
+        </div>
+        <p id="result"></p>
+        <p id="correct-answer"></p>
+        <div id="question-navigation">
+            <button id="prev-button">Previous Question</button>
+            <button id="next-button">Next Question</button>
+        </div>
+        <p id="question-count"></p>
+        <div id="jump-to-question">
+            <label for="question-number">Jump to Question:</label>
+            <input type="number" id="question-number" min="1">
+            <button onclick="jumpToQuestion()">Go</button>
+        </div>
+        <button id="like-button">Like Question</button>
+        <div id="liked-questions-list"></div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "What are the primary flight control surfaces of a fixed-wing aircraft?",
+                options: ["Ailerons, Elevators, Rudder", "Flaps, Slats, Spoilers", "Trim Tabs, Servo Tabs, Balance Tabs", "Leading Edge Flaps, Trailing Edge Flaps, Air Brakes"],
+                correctAnswer: "Ailerons, Elevators, Rudder"
+            },
+            {
+                question: "Which primary control surface controls roll about the longitudinal axis?",
+                options: ["Rudder", "Elevator", "Ailerons", "Stabilator"],
+                correctAnswer: "Ailerons"
+            },
+            {
+                question: "Which primary control surface controls pitch about the lateral axis?",
+                options: ["Rudder", "Elevator", "Ailerons", "Spoilers"],
+                correctAnswer: "Elevator"
+            },
+            {
+                question: "Which primary control surface controls yaw about the vertical axis?",
+                options: ["Rudder", "Elevator", "Ailerons", "Stabilator"],
+                correctAnswer: "Rudder"
+            },
+            {
+                question: "What is a stabilator?",
+                options: ["A movable horizontal stabilizer", "A type of flap", "A form of aileron", "A type of spoiler"],
+                correctAnswer: "A movable horizontal stabilizer"
+            },
+            {
+                question: "What is the purpose of spoilers?",
+                options: ["Increase lift", "Decrease drag", "Reduce lift", "Control yaw"],
+                correctAnswer: "Reduce lift"
+            },
+            {
+                question: "Where are ailerons typically located?",
+                options: ["Leading edge of the wing", "Trailing edge of the wing", "Vertical stabilizer", "Horizontal stabilizer"],
+                correctAnswer: "Trailing edge of the wing"
+            },
+            {
+                question: "What is the function of a rudder limiter?",
+                options: ["Increase rudder effectiveness", "Limit involuntary rudder movement", "Control pitch", "Control roll"],
+                correctAnswer: "Limit involuntary rudder movement"
+            },
+            {
+                question: "What is the effect of deflecting the aileron downward?",
+                options: ["Decreased lift", "Increased lift", "Increased drag", "No effect"],
+                correctAnswer: "Increased lift"
+            },
+            {
+                question: "What is the effect of deflecting the elevator upwards?",
+                options: ["Nose down", "Nose up", "Roll right", "Roll left"],
+                correctAnswer: "Nose up"
+            },
+            {
+                question: "What is the effect of deflecting the rudder to the right?",
+                options: ["Yaw left", "Yaw right", "Roll right", "Roll left"],
+                correctAnswer: "Yaw right"
+            },
+            {
+                question: "What is the purpose of a canard?",
+                options: ["Increase drag", "Provide lift and stability", "Control yaw", "Decrease lift"],
+                correctAnswer: "Provide lift and stability"
+            },
+            {
+                question: "What is the primary function of flaps?",
+                options: ["Control roll", "Increase lift at low speeds", "Decrease drag", "Control yaw"],
+                correctAnswer: "Increase lift at low speeds"
+            },
+            {
+                question: "What is the purpose of trim tabs?",
+                options: ["Increase speed", "Relieve control pressure", "Decrease lift", "Control yaw"],
+                correctAnswer: "Relieve control pressure"
+            },
+            {
+                question: "What is the term for movement around the longitudinal axis?",
+                options: ["Pitch", "Yaw", "Roll", "Heave"],
+                correctAnswer: "Roll"
+            },
+            {
+                question: "What is the term for movement around the lateral axis?",
+                options: ["Pitch", "Yaw", "Roll", "Sway"],
+                correctAnswer: "Pitch"
+            },
+            {
+                question: "What is the term for movement around the vertical axis?",
+                options: ["Pitch", "Yaw", "Roll", "Surge"],
+                correctAnswer: "Yaw"
+            },
+             {
+                question: "What type of construction is common for light aircraft control surfaces?",
+                options: ["Composite", "Aluminum alloy", "Fabric covered", "All of the above"],
+                correctAnswer: "Aluminum alloy"
+            },
+            {
+                question: "Why is balancing control surfaces important?",
+                options: ["Increase speed", "Prevent flutter", "Reduce drag", "Improve fuel efficiency"],
+                correctAnswer: "Prevent flutter"
+            },
+            {
+                question: "What is the effect of deploying spoilers on both wings during landing?",
+                options: ["Increase lift", "Decrease lift and increase drag", "Control yaw", "Control roll"],
+                correctAnswer: "Decrease lift and increase drag"
+            },
+            {
+                question: "What is the purpose of leading edge flaps or slats?",
+                options: ["Increase speed", "Increase lift at high angles of attack", "Decrease drag", "Control yaw"],
+                correctAnswer: "Increase lift at high angles of attack"
+            },
+            {
+                question: "What type of forces are created by the movement of control surfaces?",
+                options: ["Electrical", "Magnetic", "Aerodynamic", "Chemical"],
+                correctAnswer: "Aerodynamic"
+            },
+            {
+                question: "What does the term 'camber' refer to in aerodynamics?",
+                options: ["Wing span", "Wing thickness", "Curvature of the wing", "Wing area"],
+                correctAnswer: "Curvature of the wing"
+            },
+            {
+                question: "What is the relationship between airspeed and control surface effectiveness?",
+                options: ["Inversely proportional", "Directly proportional", "No relationship", "Logarithmic"],
+                correctAnswer: "Directly proportional"
+            },
+            {
+                question: "What is the purpose of a balance tab?",
+                options: ["Increase lift", "Relieve control forces", "Control yaw", "Decrease drag"],
+                correctAnswer: "Relieve control forces"
+            },
+            {
+                question: "What is the function of a servo tab?",
+                options: ["Increase speed", "Assist in moving control surfaces", "Control yaw", "Decrease drag"],
+                correctAnswer: "Assist in moving control surfaces"
+            },
+            {
+                question: "What is the effect of increasing the angle of attack?",
+                options: ["Decrease lift", "Increase lift", "Decrease drag", "No effect"],
+                correctAnswer: "Increase lift"
+            },
+            {
+                question: "What is the purpose of a yaw dampener?",
+                options: ["Control roll", "Correct yaw oscillations", "Control pitch", "Increase speed"],
+                correctAnswer: "Correct yaw oscillations"
+            },
+            {
+                question: "What is the primary purpose of a horizontal stabilizer?",
+                options: ["Provide lift", "Provide longitudinal stability", "Control yaw", "Control roll"],
+                correctAnswer: "Provide longitudinal stability"
+            },
+            {
+                question: "What is the primary purpose of a vertical stabilizer?",
+                options: ["Provide lift", "Provide lateral stability", "Provide directional stability", "Control pitch"],
+                correctAnswer: "Provide directional stability"
+            },
+            {
+                question: "What is the term for the movement of an aircraft's nose up or down?",
+                options: ["Roll", "Yaw", "Pitch", "Sway"],
+                correctAnswer: "Pitch"
+            },
+            {
+                question: "What is the term for the movement of an aircraft's wings up or down?",
+                options: ["Roll", "Yaw", "Pitch", "Surge"],
+                correctAnswer: "Roll"
+            },
+            {
+                question: "What is the term for the movement of an aircraft's nose left or right?",
+                options: ["Roll", "Yaw", "Pitch", "Heave"],
+                correctAnswer: "Yaw"
+            },
+            {
+                question: "In which direction does the rudder move the nose of the plane?",
+                options: ["Opposite to the rudder deflection", "In the same direction as the rudder deflection", "Up or down", "It does not affect the nose"],
+                correctAnswer: "In the same direction as the rudder deflection"
+            },
+            {
+                question: "What does 'angle of incidence' refer to?",
+                options: ["The angle between the wing and the fuselage", "The angle between the wing and the relative wind", "The angle between the stabilizer and the fuselage", "The angle of the control surfaces"],
+                correctAnswer: "The angle between the wing and the fuselage"
+            },
+            {
+                question: "Which control surface assists in preventing a stall at low speeds?",
+                options: ["Ailerons", "Rudder", "Flaps", "Spoilers"],
+                correctAnswer: "Flaps"
+            },
+            {
+                question: "What is the function of a 'slat' on a wing?",
+                options: ["Decrease drag", "Increase lift at high angles of attack", "Control roll", "Control yaw"],
+                correctAnswer: "Increase lift at high angles of attack"
+            },
+            {
+                question: "What does the term 'flutter' refer to in aviation?",
+                options: ["A steady flight condition", "An unstable oscillation of a control surface", "A type of turn", "A rapid climb"],
+                correctAnswer: "An unstable oscillation of a control surface"
+            },
+            {
+                question: "What is the primary method of controlling the aircraft on the ground before takeoff?",
+                options: ["Ailerons", "Rudder pedals and nose wheel steering", "Elevators", "Spoilers"],
+                correctAnswer: "Rudder pedals and nose wheel steering"
+            },
+            {
+                question: "What is the result of applying 'up elevator'?",
+                options: ["Nose down", "Nose up", "Roll right", "Yaw left"],
+                correctAnswer: "Nose up"
+            },
+            {
+                question: "What is the primary effect of adverse yaw during aileron deflection?",
+                options: ["Increased lift on the descending wing", "Yaw towards the raised wing", "Reduced drag on the descending wing", "Increased stability"],
+                correctAnswer: "Yaw towards the raised wing"
+            },
+            {
+                question: "What is the primary purpose of differential aileron deflection?",
+                options: ["To increase roll rate", "To counteract adverse yaw", "To reduce induced drag", "To increase stability"],
+                correctAnswer: "To counteract adverse yaw"
+            },
+            {
+                question: "What is the function of a Mach trim system in high-speed aircraft?",
+                options: ["To control yaw at high speeds", "To counteract pitch changes due to Mach tuck", "To increase lift at high speeds", "To reduce drag during supersonic flight"],
+                correctAnswer: "To counteract pitch changes due to Mach tuck"
+            },
+            {
+                question: "What is the primary effect of wingtip vortices on induced drag?",
+                options: ["Decrease induced drag", "Increase induced drag", "No effect on induced drag", "Stabilize the aircraft"],
+                correctAnswer: "Increase induced drag"
+            },
+            {
+                question: "What is the purpose of winglets?",
+                options: ["Increase drag", "Decrease induced drag", "Control yaw", "Increase roll rate"],
+                correctAnswer: "Decrease induced drag"
+            },
+            {
+                question: "What is the primary function of a leading-edge vortex control system?",
+                options: ["To reduce drag at high speeds", "To improve lift at high angles of attack", "To control yaw during turns", "To increase roll rate"],
+                correctAnswer: "To improve lift at high angles of attack"
+            },
+            {
+                question: "What is the phenomenon of 'Dutch roll' and how is it mitigated?",
+                options: ["A stable oscillation, mitigated by aileron deflection", "An unstable oscillation, mitigated by a yaw damper", "A stable pitch oscillation, mitigated by elevator input", "An unstable roll oscillation, mitigated by spoilers"],
+                correctAnswer: "An unstable oscillation, mitigated by a yaw damper"
+            },
+            {
+                question: "What is the effect of 'ground effect' on aircraft performance during landing?",
+                options: ["Increased drag, decreased lift", "Increased lift, decreased induced drag", "Decreased lift, increased speed", "Increased speed, increased drag"],
+                correctAnswer: "Increased lift, decreased induced drag"
+            },
+            {
+                question: "What is the purpose of a 'stick pusher' system in aircraft?",
+                options: ["To increase control surface effectiveness", "To prevent a stall by forcing the nose down", "To assist with trim control", "To control yaw during high-speed turns"],
+                correctAnswer: "To prevent a stall by forcing the nose down"
+            },
+            {
+                question: "What is the primary effect of 'sweepback' on a wing?",
+                options: ["Increased lift at low speeds", "Increased drag at high speeds", "Increased lateral stability and delayed Mach effects", "Decreased roll rate"],
+                correctAnswer: "Increased lateral stability and delayed Mach effects"
+            },
+            {
+                question: "What is the function of 'vortex generators' on a wing?",
+                options: ["To reduce drag", "To delay boundary layer separation", "To increase lift at low speeds", "To control yaw"],
+                correctAnswer: "To delay boundary layer separation"
+            },
+            {
+                question: "What is the primary cause of 'Mach tuck' in high-speed aircraft?",
+                options: ["Increased lift at high speeds", "Rearward shift of the center of pressure", "Decreased drag", "Increased stability"],
+                correctAnswer: "Rearward shift of the center of pressure"
+            },
+            {
+                question: "What is the effect of 'dihedral' on lateral stability?",
+                options: ["Decreased lateral stability", "Increased lateral stability", "No effect on stability", "Increased roll rate"],
+                correctAnswer: "Increased lateral stability"
+            },
+            {
+                question: "What is the function of a 'slotted flap'?",
+                options: ["Increase drag", "Increase lift and reduce stall speed by boundary layer control", "Control yaw", "Increase roll rate"],
+                correctAnswer: "Increase lift and reduce stall speed by boundary layer control"
+            },
+            {
+                question: "What is the primary difference between a 'servo tab' and a 'trim tab'?",
+                options: ["Servo tabs control yaw, trim tabs control pitch", "Servo tabs assist control surface movement, trim tabs relieve control pressure", "Servo tabs increase lift, trim tabs decrease drag", "Servo tabs are for high speed, trim tabs are for low speed"],
+                correctAnswer: "Servo tabs assist control surface movement, trim tabs relieve control pressure"
+            },
+            {
+                question: "What is the effect of 'washout' on a wing?",
+                options: ["Increased lift at wingtips", "Decreased lift at wingtips, improving stall characteristics", "Increased drag", "Increased roll rate"],
+                correctAnswer: "Decreased lift at wingtips, improving stall characteristics"
+            },
+            {
+                question: "What is the primary purpose of a 'fly-by-wire' control system?",
+                options: ["To increase drag", "To enhance stability and control through computer-mediated inputs", "To reduce speed", "To control yaw only"],
+                correctAnswer: "To enhance stability and control through computer-mediated inputs"
+            },
+            {
+                question: "What is the phenomenon of 'compressibility' and its effect on high-speed flight?",
+                options: ["Increased lift, decreased drag", "Changes in air density affecting aerodynamic characteristics", "Decreased stability, increased roll rate", "Increased yaw, decreased pitch"],
+                correctAnswer: "Changes in air density affecting aerodynamic characteristics"
+            },
+            {
+                question: "What is the primary function of a 'Q-feel' system?",
+                options: ["To provide artificial feel related to dynamic pressure", "To control yaw rate", "To increase lift", "To decrease drag"],
+                correctAnswer: "To provide artificial feel related to dynamic pressure"
+            },
+            {
+                question: "What is the effect of 'aspect ratio' on induced drag?",
+                options: ["Higher aspect ratio reduces induced drag", "Lower aspect ratio reduces induced drag", "Aspect ratio has no effect on induced drag", "Aspect ratio increases induced drag"],
+                correctAnswer: "Higher aspect ratio reduces induced drag"
+            },
+            {
+                question: "What is the primary function of trim tabs?",
+                options: ["Increase lift", "Relieve control pressure", "Decrease drag", "Control yaw"],
+                correctAnswer: "Relieve control pressure"
+            },
+            {
+                question: "Which type of tab moves in the same direction as the primary control surface?",
+                options: ["Trim tab", "Balance tab", "Servo tab", "Anti-servo tab"],
+                correctAnswer: "Anti-servo tab"
+            },
+            {
+                question: "What is the purpose of mass balances on control surfaces?",
+                options: ["Increase speed", "Prevent flutter", "Reduce drag", "Control yaw"],
+                correctAnswer: "Prevent flutter"
+            },
+            {
+                question: "What is the primary function of flaps?",
+                options: ["Increase speed", "Increase lift at low speeds", "Decrease drag", "Control roll"],
+                correctAnswer: "Increase lift at low speeds"
+            },
+            {
+                question: "What type of flap also increases the wing's surface area?",
+                options: ["Plain flap", "Split flap", "Fowler flap", "Leading edge flap"],
+                correctAnswer: "Fowler flap"
+            },
+            {
+                question: "What control surfaces combine the functions of ailerons and flaps?",
+                options: ["Elevons", "Ruddervators", "Flaperons", "Spoilers"],
+                correctAnswer: "Flaperons"
+            },
+            {
+                question: "What is the primary function of slats?",
+                options: ["Increase drag", "Increase lift at high angles of attack", "Control yaw", "Decrease lift"],
+                correctAnswer: "Increase lift at high angles of attack"
+            },
+            {
+                question: "What is the purpose of spoilers?",
+                options: ["Increase lift", "Decrease drag", "Reduce lift", "Control yaw"],
+                correctAnswer: "Reduce lift"
+            },
+            {
+                question: "What is the function of vortex generators?",
+                options: ["Increase speed", "Delay boundary layer separation", "Control roll", "Decrease lift"],
+                correctAnswer: "Delay boundary layer separation"
+            },
+            {
+                question: "What is the purpose of winglets?",
+                options: ["Increase drag", "Reduce induced drag", "Control yaw", "Increase roll rate"],
+                correctAnswer: "Reduce induced drag"
+            },
+            {
+                question: "What is a Mach number?",
+                options: ["Speed of sound in meters per second", "Ratio of aircraft speed to speed of sound", "Air pressure measurement", "Wing span measurement"],
+                correctAnswer: "Ratio of aircraft speed to speed of sound"
+            },
+            {
+                question: "What is the speed regime in which part of the aircraft experiences subsonic airflow and part experiences supersonic airflow?",
+                options: ["Subsonic", "Transonic", "Supersonic", "Hypersonic"],
+                correctAnswer: "Transonic"
+            },
+            {
+                question: "What is the term for the piling up of sound energy when an aircraft reaches the speed of sound?",
+                options: ["Expansion wave", "Oblique shock wave", "Normal shock wave", "Shock wave"],
+                correctAnswer: "Shock wave"
+            },
+            {
+                question: "What type of shock wave forms perpendicular to the airstream?",
+                options: ["Oblique shock wave", "Normal shock wave", "Expansion wave", "Bow wave"],
+                correctAnswer: "Normal shock wave"
+            },
+            {
+                question: "What is the effect of an expansion wave on airflow?",
+                options: ["Increases pressure", "Decreases velocity", "Increases velocity", "Increases density"],
+                correctAnswer: "Increases velocity"
+            },
+            {
+                question: "What does 'critical Mach number' refer to?",
+                options: ["The speed of sound", "The speed at which the entire aircraft is supersonic", "The airspeed at which airflow over any part of the aircraft reaches the speed of sound", "The maximum speed of the aircraft"],
+                correctAnswer: "The airspeed at which airflow over any part of the aircraft reaches the speed of sound"
+            },
+            {
+                question: "What is the function of a servo tab?",
+                options: ["Increase speed", "Assist in moving control surfaces", "Control yaw", "Decrease drag"],
+                correctAnswer: "Assist in moving control surfaces"
+            },
+            {
+                question: "What is the primary purpose of a horizontal stabilizer?",
+                options: ["Provide lift", "Provide longitudinal stability", "Control yaw", "Control roll"],
+                correctAnswer: "Provide longitudinal stability"
+            },
+            {
+                question: "What is the primary purpose of a vertical stabilizer?",
+                options: ["Provide lift", "Provide lateral stability", "Provide directional stability", "Control pitch"],
+                correctAnswer: "Provide directional stability"
+            },
+            {
+                question: "What is the term for the movement of an aircraft's wings up or down?",
+                options: ["Roll", "Yaw", "Pitch", "Surge"],
+                correctAnswer: "Roll"
+            },
+            {
+                question: "What is the primary effect of control surface bias on aircraft trim?",
+                options: ["Increases drag", "Maintains a non-neutral control position for hands-off flight", "Reduces lift", "Increases sensitivity"],
+                correctAnswer: "Maintains a non-neutral control position for hands-off flight"
+            },
+            {
+                question: "How does a triple-slotted flap enhance lift compared to a single-slotted flap?",
+                options: ["Increases wing area only", "Increases camber only", "Increases both wing area and enhances laminar flow through multiple slots", "Reduces stall speed without increasing lift"],
+                correctAnswer: "Increases both wing area and enhances laminar flow through multiple slots"
+            },
+            {
+                question: "What is the primary aerodynamic benefit of a sawtooth leading edge on a wing?",
+                options: ["Reduces drag", "Increases roll rate", "Improves boundary layer flow and stall resistance", "Increases speed"],
+                correctAnswer: "Improves boundary layer flow and stall resistance"
+            },
+            {
+                question: "What is the key difference in airflow behind an oblique shock wave compared to a normal shock wave?",
+                options: ["Oblique shock wave air is subsonic, normal is supersonic", "Oblique shock wave air is still supersonic, normal is subsonic", "Both are subsonic", "Both are supersonic"],
+                correctAnswer: "Oblique shock wave air is still supersonic, normal is subsonic"
+            },
+            {
+                question: "What is the primary aerodynamic principle behind the operation of a winglet?",
+                options: ["Increasing wing area", "Reducing wingtip vortices and induced drag", "Controlling yaw", "Increasing lift at low speeds"],
+                correctAnswer: "Reducing wingtip vortices and induced drag"
+            },
+            {
+                question: "What is the significance of the transition point in boundary layer theory?",
+                options: ["Point of maximum lift", "Point where laminar flow becomes turbulent flow", "Point of stall", "Point of maximum speed"],
+                correctAnswer: "Point where laminar flow becomes turbulent flow"
+            },
+            {
+                question: "How does a stall wedge or stall strip contribute to stall recovery?",
+                options: ["Increases overall lift", "Causes outboard wing stall first", "Causes inboard wing stall first, preserving aileron effectiveness", "Reduces drag"],
+                correctAnswer: "Causes inboard wing stall first, preserving aileron effectiveness"
+            },
+            {
+                question: "What is the primary function of a Q-feel system in high-speed aircraft?",
+                options: ["Control yaw", "Provide artificial feel related to dynamic pressure", "Increase lift", "Decrease drag"],
+                correctAnswer: "Provide artificial feel related to dynamic pressure"
+            },
+            {
+                question: "What is the primary impact of 'Mach tuck' on aircraft control?",
+                options: ["Roll instability", "Yaw instability", "Pitch down tendency", "Increased lift"],
+                correctAnswer: "Pitch down tendency"
+            },
+            {
+                question: "What is the aerodynamic effect of 'washout' on a wing?",
+                options: ["Increases lift at wingtips", "Decreases lift at wingtips, improving stall characteristics", "Increases drag", "Increases roll rate"],
+                correctAnswer: "Decreases lift at wingtips, improving stall characteristics"
+            },
+            {
+                question: "How does 'dihedral' contribute to lateral stability?",
+                options: ["Decreases stability", "Increases stability by creating a restoring moment during a roll", "No effect on stability", "Increases roll rate"],
+                correctAnswer: "Increases stability by creating a restoring moment during a roll"
+            },
+            {
+                question: "What is the primary function of a 'fly-by-wire' control system?",
+                options: ["Increase drag", "Enhance stability and control through computer-mediated inputs", "Reduce speed", "Control yaw only"],
+                correctAnswer: "Enhance stability and control through computer-mediated inputs"
+            },
+            {
+                question: "What is the primary purpose of differential aileron deflection?",
+                options: ["To increase roll rate", "To counteract adverse yaw", "To reduce induced drag", "To increase stability"],
+                correctAnswer: "To counteract adverse yaw"
+            },
+            {
+                question: "What is the function of a Mach trim system in high-speed aircraft?",
+                options: ["To control yaw at high speeds", "To counteract pitch changes due to Mach tuck", "To increase lift at high speeds", "To reduce drag during supersonic flight"],
+                correctAnswer: "To counteract pitch changes due to Mach tuck"
+            },
+            {
+                question: "What is the primary effect of wingtip vortices on induced drag?",
+                options: ["Decrease induced drag", "Increase induced drag", "No effect on induced drag", "Stabilize the aircraft"],
+                correctAnswer: "Increase induced drag"
+            },
+            {
+                question: "What is the primary function of a leading-edge vortex control system?",
+                options: ["To reduce drag at high speeds", "To improve lift at high angles of attack", "To control yaw during turns", "To increase roll rate"],
+                correctAnswer: "To improve lift at high angles of attack"
+            },
+            {
+                question: "What is the phenomenon of 'Dutch roll' and how is it mitigated?",
+                options: ["A stable oscillation, mitigated by aileron deflection", "An unstable oscillation, mitigated by a yaw damper", "A stable pitch oscillation, mitigated by elevator input", "An unstable roll oscillation, mitigated by spoilers"],
+                correctAnswer: "An unstable oscillation, mitigated by a yaw damper"
+            },
+            {
+                question: "What is the effect of 'ground effect' on aircraft performance during landing?",
+                options: ["Increased drag, decreased lift", "Increased lift, decreased induced drag", "Decreased lift, increased speed", "Increased speed, increased drag"],
+                correctAnswer: "Increased lift, decreased induced drag"
+            },
+            {
+                question: "What is the purpose of a 'stick pusher' system in aircraft?",
+                options: ["To increase control surface effectiveness", "To prevent a stall by forcing the nose down", "To assist with trim control", "To control yaw during high-speed turns"],
+                correctAnswer: "To prevent a stall by forcing the nose down"
+            },
+            {
+                question: "What is the primary effect of 'sweepback' on a wing?",
+                options: ["Increased lift at low speeds", "Increased drag at high speeds", "Increased lateral stability and delayed Mach effects", "Decreased roll rate"],
+                correctAnswer: "Increased lateral stability and delayed Mach effects"
+            },
+             {
+                question: "What is the primary function of a 'slotted flap'?",
+                options: ["Increase drag", "Increase lift and reduce stall speed by boundary layer control", "Control yaw", "Increase roll rate"],
+                correctAnswer: "Increase lift and reduce stall speed by boundary layer control"
+            },
+            {
+                question: "What is the primary difference between a 'servo tab' and a 'trim tab'?",
+                options: ["Servo tabs control yaw, trim tabs control pitch", "Servo tabs assist control surface movement, trim tabs relieve control pressure", "Servo tabs increase lift, trim tabs decrease drag", "Servo tabs are for high speed, trim tabs are for low speed"],
+                correctAnswer: "Servo tabs assist control surface movement, trim tabs relieve control pressure"
+            },
+            {
+                question: "What is the effect of 'aspect ratio' on induced drag?",
+                options: ["Higher aspect ratio reduces induced drag", "Lower aspect ratio reduces induced drag", "Aspect ratio has no effect on induced drag", "Aspect ratio increases induced drag"],
+                correctAnswer: "Higher aspect ratio reduces induced drag"
+            },
+            {
+                question: "What is the primary purpose of a wing fence?",
+                options: ["To increase lift", "To halt spanwise airflow and maintain chordwise airflow", "To increase drag", "To control roll"],
+                correctAnswer: "To halt spanwise airflow and maintain chordwise airflow"
+            },
+            {
+                question: "What is the aerodynamic function of a Krueger flap?",
+                options: ["Increase drag", "Increase wing camber at the leading edge", "Control yaw", "Decrease lift"],
+                correctAnswer: "Increase wing camber at the leading edge"
+            },
+            {
+                question: "What is the primary effect of 'compressibility' on airflow at high speeds?",
+                options: ["Increased lift", "Changes in air density affecting aerodynamic characteristics", "Decreased drag", "Increased stability"],
+                correctAnswer: "Changes in air density affecting aerodynamic characteristics"
+            },
+            {
+                question: "What is the function of a 'stick pusher' system?",
+                options: ["Increase control surface effectiveness", "Prevent stalls by forcing nose down", "Assist with trim control", "Control yaw during high speed turns"],
+                correctAnswer: "Prevent stalls by forcing nose down"
+            },
+            {
+                question: "What is the primary effect of 'adverse yaw' during aileron deflection?",
+                options: ["Increased lift on the descending wing", "Yaw towards the raised wing", "Reduced drag on the descending wing", "Increased stability"],
+                correctAnswer: "Yaw towards the raised wing"
+            },
+            {
+                question: "What is the primary purpose of 'differential aileron deflection'?",
+                options: ["Increase roll rate", "Counteract adverse yaw", "Reduce induced drag", "Increase stability"],
+                correctAnswer: "Counteract adverse yaw"
+            },
+            {
+                question: "What is the function of a 'Mach trim system' in high-speed aircraft?",
+                options: ["Control yaw at high speeds", "Counteract pitch changes due to Mach tuck", "Increase lift at high speeds", "Reduce drag during supersonic flight"],
+                correctAnswer: "Counteract pitch changes due to Mach tuck"
+            },
+            {
+                question: "What is the primary effect of 'wingtip vortices' on induced drag?",
+                options: ["Decrease induced drag", "Increase induced drag", "No effect on induced drag", "Stabilize the aircraft"],
+                correctAnswer: "Increase induced drag"
+            },
+            {
+                question: "What is the primary function of a 'leading-edge vortex control system'?",
+                options: ["Reduce drag at high speeds", "Improve lift at high angles of attack", "Control yaw during turns", "Increase roll rate"],
+                correctAnswer: "Improve lift at high angles of attack"
+            },
+            {
+                question: "What is the phenomenon of 'Dutch roll' and how is it mitigated?",
+                options: ["Stable oscillation, mitigated by aileron deflection", "Unstable oscillation, mitigated by a yaw damper", "Stable pitch oscillation, mitigated by elevator input", "Unstable roll oscillation, mitigated by spoilers"],
+                correctAnswer: "Unstable oscillation, mitigated by a yaw damper"
+            },
+            {
+                question: "What is the effect of 'ground effect' on aircraft performance during landing?",
+                options: ["Increased drag, decreased lift", "Increased lift, decreased induced drag", "Decreased lift, increased speed", "Increased speed, increased drag"],
+                correctAnswer: "Increased lift, decreased induced drag"
+            },
+            {
+                question: "What is the primary effect of 'sweepback' on a wing?",
+                options: ["Increased lift at low speeds", "Increased drag at high speeds", "Increased lateral stability and delayed Mach effects", "Decreased roll rate"],
+                correctAnswer: "Increased lateral stability and delayed Mach effects"
+            },
+            {
+                question: "What is the function of 'vortex generators' on a wing?",
+                options: ["Reduce drag", "Delay boundary layer separation", "Increase lift at low speeds", "Control yaw"],
+                correctAnswer: "Delay boundary layer separation"
+            },
+            {
+                question: "What is the primary cause of 'Mach tuck' in high-speed aircraft?",
+                options: ["Increased lift at high speeds", "Rearward shift of the center of pressure", "Decreased drag", "Increased stability"],
+                correctAnswer: "Rearward shift of the center of pressure"
+            },
+            {
+                question: "What is the effect of 'dihedral' on lateral stability?",
+                options: ["Decreased lateral stability", "Increased lateral stability", "No effect on stability", "Increased roll rate"],
+                correctAnswer: "Increased lateral stability"
+            },
+             {
+                question: "What is the effect of 'washout' on a wing?",
+                options: ["Increased lift at wingtips", "Decreased lift at wingtips, improving stall characteristics", "Increased drag", "Increased roll rate"],
+                correctAnswer: "Decreased lift at wingtips, improving stall characteristics"
+            },
+            {
+                question: "What is the primary purpose of a 'fly-by-wire' control system?",
+                options: ["To increase drag", "To enhance stability and control through computer-mediated inputs", "To reduce speed", "To control yaw only"],
+                correctAnswer: "To enhance stability and control through computer-mediated inputs"
+            },
+             {
+                question: "What is the primary function of winglets?",
+                options: ["Increase drag", "Reduce induced drag", "Control yaw", "Increase roll rate"],
+                correctAnswer: "Reduce induced drag"
+            },
+            {
+                question: "What is a Mach number?",
+                options: ["Speed of sound in meters per second", "Ratio of aircraft speed to speed of sound", "Air pressure measurement", "Wing span measurement"],
+                correctAnswer: "Ratio of aircraft speed to speed of sound"
+            },
+            {
+                question: "What is the speed regime in which part of the aircraft experiences subsonic airflow and part experiences supersonic airflow?",
+                options: ["Subsonic", "Transonic", "Supersonic", "Hypersonic"],
+                correctAnswer: "Transonic"
+            },
+            {
+                question: "What is the term for the piling up of sound energy when an aircraft reaches the speed of sound?",
+                options: ["Expansion wave", "Oblique shock wave", "Normal shock wave", "Shock wave"],
+                correctAnswer: "Shock wave"
+            },
+            {
+                question: "What type of shock wave forms perpendicular to the airstream?",
+                options: ["Oblique shock wave", "Normal shock wave", "Expansion wave", "Bow wave"],
+                correctAnswer: "Normal shock wave"
+            },
+            {
+                question: "What is the effect of an expansion wave on airflow?",
+                options: ["Increases pressure", "Decreases velocity", "Increases velocity", "Increases density"],
+                correctAnswer: "Increases velocity"
+            },
+            {
+                question: "What does 'critical Mach number' refer to?",
+                options: ["The speed of sound", "The speed at which the entire aircraft is supersonic", "The airspeed at which airflow over any part of the aircraft reaches the speed of sound", "The maximum speed of the aircraft"],
+                correctAnswer: "The airspeed at which airflow over any part of the aircraft reaches the speed of sound"
+            },
+            {
+                question: "What is the primary effect of control surface bias on aircraft trim?",
+                options: ["Increases drag", "Maintains a non-neutral control position for hands-off flight", "Reduces lift", "Increases sensitivity"],
+                correctAnswer: "Maintains a non-neutral control position for hands-off flight"
+            },
+            {
+                question: "How does a triple-slotted flap enhance lift compared to a single-slotted flap?",
+                options: ["Increases wing area only", "Increases camber only", "Increases both wing area and enhances laminar flow through multiple slots", "Reduces stall speed without increasing lift"],
+                correctAnswer: "Increases both wing area and enhances laminar flow through multiple slots"
+            },
+            {
+                question: "What is the primary aerodynamic benefit of a sawtooth leading edge on a wing?",
+                options: ["Reduces drag", "Increases roll rate", "Improves boundary layer flow and stall resistance", "Increases speed"],
+                correctAnswer: "Improves boundary layer flow and stall resistance"
+            },
+             {
+                question: "What is the key difference in airflow behind an oblique shock wave compared to a normal shock wave?",
+                options: ["Oblique shock wave air is subsonic, normal is supersonic", "Oblique shock wave air is still supersonic, normal is subsonic", "Both are subsonic", "Both are supersonic"],
+                correctAnswer: "Oblique shock wave air is still supersonic, normal is subsonic"
+            },
+            {
+                question: "What is the primary aerodynamic principle behind the operation of a winglet?",
+                options: ["Increasing wing area", "Reducing wingtip vortices and induced drag", "Controlling yaw", "Increasing lift at low speeds"],
+                correctAnswer: "Reducing wingtip vortices and induced drag"
+            },
+            {
+                question: "What is the significance of the transition point in boundary layer theory?",
+                options: ["Point of maximum lift", "Point where laminar flow becomes turbulent flow", "Point of stall", "Point of maximum speed"],
+                correctAnswer: "Point where laminar flow becomes turbulent flow"
+            },
+            {
+                question: "How does a stall wedge or stall strip contribute to stall recovery?",
+                options: ["Increases overall lift", "Causes outboard wing stall first", "Causes inboard wing stall first, preserving aileron effectiveness", "Reduces drag"],
+                correctAnswer: "Causes inboard wing stall first, preserving aileron effectiveness"
+            },
+            {
+                question: "What is the primary function of a Q-feel system in high-speed aircraft?",
+                options: ["Control yaw", "Provide artificial feel related to dynamic pressure", "Increase lift", "Decrease drag"],
+                correctAnswer: "Provide artificial feel related to dynamic pressure"
+            },
+            {
+                question: "What is the primary impact of 'Mach tuck' on aircraft control?",
+                options: ["Roll instability", "Yaw instability", "Pitch down tendency", "Increased lift"],
+                correctAnswer: "Pitch down tendency"
+            },
+            {
+                question: "What is the aerodynamic effect of 'washout' on a wing?",
+                options: ["Increases lift at wingtips", "Decreases lift at wingtips, improving stall characteristics", "Increases drag", "Increases roll rate"],
+                correctAnswer: "Decreases lift at wingtips, improving stall characteristics"
+            },
+            {
+                question: "How does 'dihedral' contribute to lateral stability?",
+                options: ["Decreases stability", "Increases stability by creating a restoring moment during a roll", "No effect on stability", "Increases roll rate"],
+                correctAnswer: "Increases stability by creating a restoring moment during a roll"
+            },
+            {
+                question: "What is the primary function of a 'fly-by-wire' control system?",
+                options: ["Increase drag", "Enhance stability and control through computer-mediated inputs", "Reduce speed", "Control yaw only"],
+                correctAnswer: "Enhance stability and control through computer-mediated inputs"
+            },
+            {
+                question: "What is the primary function of a slotted flap?",
+                options: ["Increase drag", "Increase lift and reduce stall speed by boundary layer control", "Control yaw", "Increase roll rate"],
+                correctAnswer: "Increase lift and reduce stall speed by boundary layer control"
+            },
+             {
+                question: "What is the primary difference between a 'servo tab' and a 'trim tab'?",
+                options: ["Servo tabs control yaw, trim tabs control pitch", "Servo tabs assist control surface movement, trim tabs relieve control pressure", "Servo tabs increase lift, trim tabs decrease drag", "Servo tabs are for high speed, trim tabs are for low speed"],
+                correctAnswer: "Servo tabs assist control surface movement, trim tabs relieve control pressure"
+            },
+            {
+                question: "What is the effect of 'aspect ratio' on induced drag?",
+                options: ["Higher aspect ratio reduces induced drag", "Lower aspect ratio reduces induced drag", "Aspect ratio has no effect on induced drag", "Aspect ratio increases induced drag"],
+                correctAnswer: "Higher aspect ratio reduces induced drag"
+            },
+            {
+                question: "What is the primary purpose of a wing fence?",
+                options: ["To increase lift", "To halt spanwise airflow and maintain chordwise airflow", "To increase drag", "To control roll"],
+                correctAnswer: "To halt spanwise airflow and maintain chordwise airflow"
+            },
+            {
+                question: "What is the aerodynamic function of a Krueger flap?",
+                options: ["Increase drag", "Increase wing camber at the leading edge", "Control yaw", "Decrease lift"],
+                correctAnswer: "Increase wing camber at the leading edge"
+            },
+            {
+                question: "What is the primary effect of 'compressibility' on airflow at high speeds?",
+                options: ["Increased lift", "Changes in air density affecting aerodynamic characteristics", "Decreased drag", "Increased stability"],
+                correctAnswer: "Changes in air density affecting aerodynamic characteristics"
+            },
+            {
+                question: "What is the function of a 'stick pusher' system?",
+                options: ["Increase control surface effectiveness", "Prevent stalls by forcing nose down", "Assist with trim control", "Control yaw during high speed turns"],
+                correctAnswer: "Prevent stalls by forcing nose down"
+            },
+            {
+                question: "What is the primary effect of 'adverse yaw' during aileron deflection?",
+                options: ["Increased lift on the descending wing", "Yaw towards the raised wing", "Reduced drag on the descending wing", "Increased stability"],
+                correctAnswer: "Yaw towards the raised wing"
+            },
+            {
+                question: "What is the primary purpose of 'differential aileron deflection'?",
+                options: ["Increase roll rate", "Counteract adverse yaw", "Reduce induced drag", "Increase stability"],
+                correctAnswer: "Counteract adverse yaw"
+            },
+            {
+                question: "What is the function of a 'Mach trim system' in high-speed aircraft?",
+                options: ["Control yaw at high speeds", "Counteract pitch changes due to Mach tuck", "Increase lift at high speeds", "Reduce drag during supersonic flight"],
+                correctAnswer: "Counteract pitch changes due to Mach tuck"
+            },
+            {
+                question: "What is the primary effect of 'wingtip vortices' on induced drag?",
+                options: ["Decrease induced drag", "Increase induced drag", "No effect on induced drag", "Stabilize the aircraft"],
+                correctAnswer: "Increase induced drag"
+            },
+            {
+                question: "What is the primary function of a 'leading-edge vortex control system'?",
+                options: ["Reduce drag at high speeds", "Improve lift at high angles of attack", "Control yaw during turns", "Increase roll rate"],
+                correctAnswer: "Improve lift at high angles of attack"
+            },
+            {
+                question: "What is the phenomenon of 'Dutch roll' and how is it mitigated?",
+                options: ["Stable oscillation, mitigated by aileron deflection", "Unstable oscillation, mitigated by a yaw damper", "Stable pitch oscillation, mitigated by elevator input", "Unstable roll oscillation, mitigated by spoilers"],
+                correctAnswer: "Unstable oscillation, mitigated by a yaw damper"
+            },
+            {
+                question: "What is the effect of 'ground effect' on aircraft performance during landing?",
+                options: ["Increased drag, decreased lift", "Increased lift, decreased induced drag", "Decreased lift, increased speed", "Increased speed, increased drag"],
+                correctAnswer: "Increased lift, decreased induced drag"
+            },
+            {
+                question: "What is the primary effect of 'sweepback' on a wing?",
+                options: ["Increased lift at low speeds", "Increased drag at high speeds", "Increased lateral stability and delayed Mach effects", "Decreased roll rate"],
+                correctAnswer: "Increased lateral stability and delayed Mach effects"
+            },
+            {
+                question: "What is the function of 'vortex generators' on a wing?",
+                options: ["Reduce drag", "Delay boundary layer separation", "Increase lift at low speeds", "Control yaw"],
+                correctAnswer: "Delay boundary layer separation"
+            },
+            {
+                question: "What is the primary cause of 'Mach tuck' in high-speed aircraft?",
+                options: ["Increased lift at high speeds", "Rearward shift of the center of pressure", "Decreased drag", "Increased stability"],
+                correctAnswer: "Rearward shift of the center of pressure"
+            },
+            {
+                question: "What is the effect of 'dihedral' on lateral stability?",
+                options: ["Decreased lateral stability", "Increased lateral stability", "No effect on stability", "Increased roll rate"],
+                correctAnswer: "Increased lateral stability"
+            },
+            {
+                question: "What is the effect of 'washout' on a wing?",
+                options: ["Increased lift at wingtips", "Decreased lift at wingtips, improving stall characteristics", "Increased drag", "Increased roll rate"],
+                correctAnswer: "Decreased lift at wingtips, improving stall characteristics"
+            },
+            {
+                question: "What is the primary purpose of a 'fly-by-wire' control system?",
+                options: ["To increase drag", "To enhance stability and control through computer-mediated inputs", "To reduce speed", "To control yaw only"],
+                correctAnswer: "Enhance stability and control through computer-mediated inputs"
+            },
+            {
+                question: "What is the primary function of a slotted flap?",
+                options: ["Increase drag", "Increase lift and reduce stall speed by boundary layer control", "Control yaw", "Increase roll rate"],
+                correctAnswer: "Increase lift and reduce stall speed by boundary layer control"
+            },
+            {
+                question: "What is the primary function of a servo tab?",
+                options: ["To reduce pilot control forces", "To assist in moving the primary control surface", "To trim the aircraft", "To prevent flutter"],
+                correctAnswer: "To assist in moving the primary control surface"
+            },
+            {
+                question: "Where are servo tabs typically located?",
+                options: ["On the leading edge of the wing", "On the trailing edge of the primary control surface", "On the fuselage", "On the vertical stabilizer leading edge"],
+                correctAnswer: "On the trailing edge of the primary control surface"
+            },
+            {
+                question: "In what situation are servo tabs most commonly used?",
+                options: ["In light aircraft with manual controls", "In heavy aircraft with hydraulic or electric controls", "Only during takeoff and landing", "In aircraft with no other control augmentation"],
+                correctAnswer: "In heavy aircraft with hydraulic or electric controls"
+            },
+            {
+                question: "How does a servo tab assist in moving a control surface?",
+                options: ["By directly increasing the pilot's force", "By creating an aerodynamic force that moves the control surface", "By changing the center of gravity of the control surface", "By using magnetic fields"],
+                correctAnswer: "By creating an aerodynamic force that moves the control surface"
+            },
+            {
+                question: "What is the relationship between the movement of the servo tab and the primary control surface?",
+                options: ["They move in the same direction", "They move in opposite directions", "They are not related", "Servo tab movement is random"],
+                correctAnswer: "They move in opposite directions"
+            },
+            {
+                question: "Compared to a trim tab, what is the key difference in function?",
+                options: ["Trim tabs move the control surface directly, servo tabs assist", "Servo tabs move the control surface directly, trim tabs relieve pressure", "They have identical functions", "Trim tabs are only for high speed flight."],
+                correctAnswer: "Servo tabs move the control surface directly, trim tabs relieve pressure"
+            },
+             {
+                question: "What is a potential backup function of a servo tab in case of hydraulic failure?",
+                options: ["To act as a trim tab", "To allow manual control of the flight surfaces", "To activate an emergency engine", "To automatically deploy speed brakes"],
+                correctAnswer: "To allow manual control of the flight surfaces"
+            },
+            {
+                question: "What physical characteristic allows a servo tab to create the needed force?",
+                options: ["Its color", "Its size and deflection", "Its material composition", "Its flexibility"],
+                correctAnswer: "Its size and deflection"
+            },
+            {
+                question: "Which linkage type is used to connect servo tab to the flight control system?",
+                options: ["Directly linked linkage", "Wireless linkage", "Magnetic linkage", "Thermal linkage"],
+                correctAnswer: "Directly linked linkage"
+            },
+            {
+                question: "What is the effect of increased air speed on servo tab effectiveness?",
+                options: ["Decreases its effectiveness", "Increases its effectiveness", "Has no effect", "Reverses its effect"],
+                correctAnswer: "Increases its effectiveness"
+            },
+            {
+                question: "What is a normal shock wave characterized by?",
+                options: ["It is parallel to the flow", "It is perpendicular to the flow", "It occurs only at low speeds", "It is an expansion wave"],
+                correctAnswer: "It is perpendicular to the flow"
+            },
+            {
+                question: "What happens to the velocity of airflow after it passes through a normal shock wave?",
+                options: ["It increases", "It decreases to subsonic", "It remains supersonic", "It becomes turbulent"],
+                correctAnswer: "It decreases to subsonic"
+            },
+            {
+                question: "What is an oblique shock wave characterized by?",
+                options: ["It is perpendicular to the flow", "It forms at an angle to the flow", "It occurs only at subsonic speeds", "It always causes a sonic boom"],
+                correctAnswer: "It forms at an angle to the flow"
+            },
+            {
+                question: "What happens to the velocity of airflow after it passes through an oblique shock wave?",
+                options: ["It becomes subsonic", "It decreases, but can remain supersonic", "It increases significantly", "It remains constant"],
+                correctAnswer: "It decreases, but can remain supersonic"
+            },
+            {
+                question: "What is an expansion wave characterized by?",
+                options: ["It increases pressure", "It decreases pressure by expanding the flow", "It only forms at normal shock wave locations", "It increases density"],
+                correctAnswer: "It decreases pressure by expanding the flow"
+            },
+            {
+                question: "What happens to the velocity of airflow after it passes through an expansion wave?",
+                options: ["It decreases", "It increases", "It remains constant", "It becomes turbulent"],
+                correctAnswer: "It increases"
+            },
+            {
+                question: "What happens to the static pressure and density of air after it passes through a normal shock wave?",
+                options: ["Both decrease", "Both increase", "Static pressure increases, density decreases", "Static pressure decreases, density increases"],
+                correctAnswer: "Both increase"
+            },
+            {
+                question: "Compared to a normal shock wave, what happens to the static pressure and density after air passes through an oblique shock wave?",
+                options: ["Both increase, but to a lesser extent", "Both decrease", "Static pressure increases, density decreases", "Static pressure decreases, density increases"],
+                correctAnswer: "Both increase, but to a lesser extent"
+            },
+            {
+                question: "What happens to the static pressure and density of air after an expansion wave?",
+                options: ["Both increase", "Both decrease", "Static pressure increases, density decreases", "Static pressure decreases, density increases"],
+                correctAnswer: "Both decrease"
+            },
+            {
+                question: "Which type of shock wave is responsible for creating sonic booms?",
+                options: ["Expansion wave", "Oblique shock wave", "Normal shock wave", "All shock waves"],
+                correctAnswer: "Normal shock wave"
+            },
+            {
+                question: "In what flight regime do these shock waves become a significant factor?",
+                options: ["Subsonic", "Transonic and supersonic", "Hypersonic", "All flight regimes"],
+                correctAnswer: "Transonic and supersonic"
+            },
+            {
+                question: "What is the primary difference in how these shock waves affect airflow?",
+                options: ["Only normal shocks change temperature", "They affect velocity, pressure, and density differently", "Only expansion waves create sound", "They only affect humidity"],
+                correctAnswer: "They affect velocity, pressure, and density differently"
+            },
+            {
+                question: "How does the angle of an oblique shock wave change with increasing Mach number?",
+                options: ["It becomes perpendicular", "It becomes more angled", "It remains constant", "It disappears"],
+                correctAnswer: "It becomes more angled"
+            },
+            {
+                question: "What is the primary aerodynamic effect of expansion waves on an aircraft?",
+                options: ["Increase drag", "Increase lift", "Decrease drag", "Cause instability"],
+                correctAnswer: "Increase lift"
+            },
+            {
+                question: "What is the result of air passing through a shockwave regarding entropy?",
+                options: ["Entropy decreases", "Entropy increases", "Entropy remains constant", "Entropy fluctuates"],
+                correctAnswer: "Entropy increases"
+            },
+             {
+                question: "What is the primary aerodynamic objective of boundary layer control?",
+                options: ["Increase drag for speed reduction", "Delay boundary layer separation and maintain laminar flow", "Increase turbulence for enhanced mixing", "Reduce wing surface area"],
+                correctAnswer: "Delay boundary layer separation and maintain laminar flow"
+            },
+            {
+                question: "What is the primary mechanism by which vortex generators control the boundary layer?",
+                options: ["Direct suction of the boundary layer", "Injection of high-pressure air", "Creating streamwise vortices that energize the boundary layer", "Heating the wing surface to increase kinetic energy"],
+                correctAnswer: "Creating streamwise vortices that energize the boundary layer"
+            },
+            {
+                question: "What is the critical parameter that determines the transition from laminar to turbulent flow in the boundary layer?",
+                options: ["Air temperature", "Reynolds number", "Air pressure", "Aircraft weight"],
+                correctAnswer: "Reynolds number"
+            },
+            {
+                question: "What is the principle behind boundary layer suction as a control method?",
+                options: ["Removing the low-momentum air within the boundary layer", "Injecting high-speed air to energize the boundary layer", "Heating the wing surface", "Creating shock waves to trip the boundary layer"],
+                correctAnswer: "Removing the low-momentum air within the boundary layer"
+            },
+            {
+                question: "What is the primary aerodynamic benefit of maintaining a laminar boundary layer over a significant portion of the wing?",
+                options: ["Increased lift at high angles of attack", "Reduced skin friction drag", "Increased induced drag", "Enhanced lateral stability"],
+                correctAnswer: "Reduced skin friction drag"
+            },
+            {
+                question: "How do wing fences contribute to boundary layer control?",
+                options: ["By increasing wing camber", "By preventing spanwise flow and maintaining chordwise flow", "By creating turbulent flow", "By increasing wing area"],
+                correctAnswer: "By preventing spanwise flow and maintaining chordwise flow"
+            },
+            {
+                question: "What is the primary drawback of using boundary layer suction on a large scale?",
+                options: ["Increased structural weight", "Significant energy requirements", "Reduced lift", "Increased noise"],
+                correctAnswer: "Significant energy requirements"
+            },
+            {
+                question: "What is the effect of an adverse pressure gradient on the boundary layer?",
+                options: ["It accelerates the flow", "It causes the boundary layer to thicken and potentially separate", "It maintains laminar flow", "It reduces skin friction"],
+                correctAnswer: "It causes the boundary layer to thicken and potentially separate"
+            },
+            {
+                question: "What is the purpose of a 'blown flap' system?",
+                options: ["To increase drag", "To energize the boundary layer over the flap, enhancing lift", "To reduce wingtip vortices", "To control yaw"],
+                correctAnswer: "To energize the boundary layer over the flap, enhancing lift"
+            },
+            {
+                question: "What is the primary mechanism by which a 'slotted wing' or slotted flap improves boundary layer control?",
+                options: ["By increasing wing area only", "By providing a high-pressure air jet", "By introducing high-energy air into the boundary layer through the slot", "By creating turbulent flow"],
+                correctAnswer: "By introducing high-energy air into the boundary layer through the slot"
+            },
+            {
+                question: "What is the effect of a 'turbulator' on the boundary layer?",
+                options: ["It maintains laminar flow", "It trips the boundary layer to turbulent at a specific location", "It reduces drag", "It increases lift"],
+                correctAnswer: "It trips the boundary layer to turbulent at a specific location"
+            },
+            {
+                question: "What is the relationship between the boundary layer thickness and the local Reynolds number?",
+                options: ["Boundary layer thickness decreases with increasing Reynolds number", "Boundary layer thickness increases with increasing Reynolds number", "There is no relationship", "The relationship is linear"],
+                correctAnswer: "Boundary layer thickness decreases with increasing Reynolds number"
+            },
+            {
+                question: "What is the primary purpose of a laminar flow control (LFC) airfoil?",
+                options: ["To increase drag", "To maximize the extent of laminar flow over the wing", "To create turbulent flow", "To increase induced drag"],
+                correctAnswer: "To maximize the extent of laminar flow over the wing"
+            },
+            {
+                question: "What is the effect of surface roughness on the boundary layer transition?",
+                options: ["Delays transition to turbulence", "Promotes earlier transition to turbulence", "Has no effect", "Reduces skin friction"],
+                correctAnswer: "Promotes earlier transition to turbulence"
+            },
+            {
+                question: "What is the primary challenge in implementing active boundary layer control systems?",
+                options: ["High manufacturing cost only", "High energy consumption and system complexity", "Reduced lift", "Increased weight only"],
+                correctAnswer: "High energy consumption and system complexity"
+            }
+        ]
+
+
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let likedQuestions = [];
+
+        const questionElement = document.getElementById("question");
+        const optionsElement = document.getElementById("options");
+        const resultElement = document.getElementById("result");
+        const nextButton = document.getElementById("next-button");
+        const prevButton = document.getElementById("prev-button");
+        const correctAnswerElement = document.getElementById("correct-answer");
+        const questionCountElement = document.getElementById("question-count");
+        const likeButton = document.getElementById("like-button");
+        const likedQuestionsListElement = document.getElementById("liked-questions-list");
+
+        function loadQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+            questionElement.textContent = currentQuestion.question;
+            optionsElement.innerHTML = "";
+            correctAnswerElement.textContent = "";
+
+            currentQuestion.options.forEach(option => {
+                const li = document.createElement("li");
+                const button = document.createElement("button");
+                button.textContent = option;
+                button.addEventListener("click", () => checkAnswer(option));
+                li.appendChild(button);
+                optionsElement.appendChild(li);
+            });
+
+            questionCountElement.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            updateNavigationButtons();
+            likeButton.style.display = "block";
+            likeButton.textContent = likedQuestions.includes(currentQuestionIndex) ? "Liked!" : "Like Question";
+            displayLikedQuestions();
+        }
+
+        function checkAnswer(selectedAnswer) {
+            const currentQuestion = questions[currentQuestionIndex];
+            const result = selectedAnswer === currentQuestion.correctAnswer;
+
+            if (result) {
+                score++;
+            }
+
+            optionsElement.querySelectorAll("button").forEach(button => {
+                if (button.textContent === currentQuestion.correctAnswer) {
+                    button.classList.add("correct");
+                } else if (button.textContent === selectedAnswer) {
+                    button.classList.add("incorrect");
+                }
+                button.disabled = true;
+            });
+
+            resultElement.textContent = result ? "Correct!" : "Incorrect.";
+            correctAnswerElement.textContent = `Correct Answer: ${currentQuestion.correctAnswer}`;
+            nextButton.style.display = "block";
+            prevButton.style.display = "block";
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+                resultElement.textContent = "";
+                nextButton.style.display = "none";
+                prevButton.style.display = "none";
+            } else {
+                questionElement.textContent = "Quiz Completed!";
+                optionsElement.innerHTML = "";
+                resultElement.textContent = `Your score: ${score} / ${questions.length}`;
+                nextButton.style.display = "none";
+                prevButton.style.display = "none";
+                correctAnswerElement.textContent = "";
+                questionCountElement.textContent = "";
+                likeButton.style.display = "none";
+            }
+        }
+
+        function prevQuestion() {
+            currentQuestionIndex--;
+            loadQuestion();
+            resultElement.textContent = "";
+            nextButton.style.display = "none";
+            prevButton.style.display = "none";
+        }
+
+        function updateNavigationButtons() {
+            if (currentQuestionIndex === 0) {
+                prevButton.style.display = "none";
+            } else {
+                prevButton.style.display = "block";
+            }
+            if (currentQuestionIndex === questions.length - 1) {
+                nextButton.style.display = "none";
+            } else {
+                nextButton.style.display = "block";
+            }
+        }
+
+        function jumpToQuestion() {
+            const questionNumber = parseInt(document.getElementById("question-number").value);
+            if (questionNumber >= 1 && questionNumber <= questions.length) {
+                currentQuestionIndex = questionNumber - 1;
+                loadQuestion();
+                resultElement.textContent = "";
+                nextButton.style.display = "none";
+                prevButton.style.display = "none";
+            } else {
+                alert(`Please enter a question number between 1 and ${questions.length}`);
+            }
+        }
+
+        function likeCurrentQuestion() {
+            if (likedQuestions.includes(currentQuestionIndex)) {
+                likedQuestions = likedQuestions.filter(index => index !== currentQuestionIndex);
+                likeButton.textContent = "Like Question";
+            } else {
+                likedQuestions.push(currentQuestionIndex);
+                likeButton.textContent = "Liked!";
+            }
+            displayLikedQuestions();
+        }
+
+        function displayLikedQuestions() {
+            likedQuestionsListElement.innerHTML = "<b>Liked Questions:</b> ";
+            if(likedQuestions.length === 0){
+                likedQuestionsListElement.innerHTML += "None";
+            } else {
+                likedQuestions.forEach(index => {
+                    likedQuestionsListElement.innerHTML += (index + 1) + ", "; // Add 1 to index to display question number
+                });
+                likedQuestionsListElement.innerHTML = likedQuestionsListElement.innerHTML.slice(0, -2); // Remove trailing comma and space
+            }
+        }
+
+        likeButton.addEventListener("click", likeCurrentQuestion);
+        nextButton.addEventListener("click", nextQuestion);
+        prevButton.addEventListener("click", prevQuestion);
+        loadQuestion();
+
+    </script>
+</body>
+</html>
